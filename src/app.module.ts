@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './modules/users/user.module';
 import { MovieModule } from './modules/movies/movies.module';
+import { FavoritesModule } from './modules/favorites/favorites.module';
 
 @Module({
   imports: [
@@ -15,7 +16,9 @@ import { MovieModule } from './modules/movies/movies.module';
       autoLoadEntities: true,
       synchronize: true,
     }),
-    UserModule, MovieModule
+    UserModule, 
+    MovieModule,
+    FavoritesModule
   ],
 })
 export class AppModule {}
