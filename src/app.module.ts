@@ -4,6 +4,7 @@ import { UserModule } from './modules/users/user.module';
 import { MovieModule } from './modules/movies/movies.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
 import { ReviewModule } from './modules/reviews/review.module';
+import { RecommendationsModule } from './modules/recommendations/recommendations.module';
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { ReviewModule } from './modules/reviews/review.module';
     UserModule, 
     MovieModule,
     FavoritesModule,
-    ReviewModule
+    ReviewModule,
+    RecommendationsModule
   ],
 })
 export class AppModule {}
