@@ -14,7 +14,6 @@ import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/
 import { CreateMovieDto } from '../dto/create-movie.dto';
 import { UpdateMovieDto } from '../dto/update-movie.dto';
 import * as nestjsPaginate from 'nestjs-paginate';
-import { PaginateResponseDto } from '../../../shared/dto/paginate-response.dto';
 import { MovieService } from '../service/movie.service';
 import { MovieResponseDto } from '../dto/response-movie.dto';
 
@@ -29,17 +28,16 @@ export class MovieController {
   async create(@Body() createMovieDto: CreateMovieDto): Promise<MovieResponseDto> {
     return this.movieService.create(createMovieDto);
   }
+@Get()
+@ApiOperation({ summary: 'Get list of movies with pagination' })
+@ApiResponse({
+  status: 200,
+  description: 'Paginated list of movies',
+})
+async getList(@Query() query: nestjsPaginate.PaginateQuery) {
+  return this.movieService.getList(query);
+}
 
-  @Get()
-  @ApiOperation({ summary: 'Get list of movies with pagination' })
-  @ApiResponse({
-    status: 200,
-    description: 'Paginated list of movies',
-    type: PaginateResponseDto,
-  })
-  async getList(@Query() query: nestjsPaginate.PaginateQuery): Promise<PaginateResponseDto<MovieResponseDto>> {
-    return this.movieService.getList(query);
-  }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a single movie by ID' })

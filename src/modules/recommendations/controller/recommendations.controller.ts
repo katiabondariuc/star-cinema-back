@@ -14,7 +14,6 @@ import { CreateRecommendationDto } from '../dto/create-recommendations.dto';
 import { UpdateRecommendationsDto } from '../dto/update-recommendations.dto';
 import { ResponseRecommendationsDto } from '../dto/response-recommendations.dto';
 import type { PaginateQuery } from 'nestjs-paginate';
-import { PaginateResponseDto } from '../../../shared/dto/paginate-response.dto';
 import { RecommendationsService } from '../service/recommendations.service';
 
 @ApiTags('Recommendations')
@@ -29,12 +28,16 @@ export class RecommendationsController {
     return this.recommendationsService.create(createDto);
   }
 
-  @Get()
-  @ApiOperation({ summary: 'Get paginated list of recommendations' })
-  @ApiResponse({ status: 200, description: 'List of recommendations', type: [ResponseRecommendationsDto] })
-  async getList(@Query() query: PaginateQuery): Promise<PaginateResponseDto<ResponseRecommendationsDto>> {
-    return this.recommendationsService.getList(query);
-  }
+@Get()
+@ApiOperation({ summary: 'Get paginated list of recommendations' })
+@ApiResponse({
+  status: 200,
+  description: 'List of recommendations',
+})
+async getList(@Query() query: PaginateQuery) {
+  return this.recommendationsService.getList(query);
+}
+
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a single recommendation by ID' })

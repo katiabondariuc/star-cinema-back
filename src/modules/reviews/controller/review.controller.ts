@@ -15,7 +15,6 @@ import type { PaginateQuery } from 'nestjs-paginate';
 import { CreateReviewDto } from '../dto/create-review.dto';
 import { ResponseReviewDto } from '../dto/response-review.dto';
 import { UpdateReviewDto } from '../dto/update-review.dto';
-import { PaginateResponseDto } from '../../../shared/dto/paginate-response.dto';
 import { ReviewService } from '../service/review.service';
 
 @ApiTags('Reviews')
@@ -36,18 +35,12 @@ export class ReviewController {
   }
 
   // === LIST (PAGINATION) ===
-  @Get()
-  @ApiOperation({ summary: 'Get paginated list of reviews' })
-  @ApiResponse({
-    status: 200,
-    description: 'Paginated list of reviews',
-    type: PaginateResponseDto<ResponseReviewDto>,
-  })
-  async getList(
-    @Query() query: PaginateQuery,
-  ): Promise<PaginateResponseDto<ResponseReviewDto>> {
-    return this.reviewService.getList(query);
-  }
+@Get()
+@ApiOperation({ summary: 'Get paginated list of reviews' })
+@ApiResponse({ status: 200, description: 'Paginated list of reviews' })
+async getList(@Query() query: PaginateQuery) {
+  return this.reviewService.getList(query);
+}
 
   // === GET ONE ===
   @Get(':id')

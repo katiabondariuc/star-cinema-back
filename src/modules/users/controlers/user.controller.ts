@@ -3,8 +3,7 @@ import { ApiTags, ApiResponse, ApiOperation } from '@nestjs/swagger';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserProfileDto } from '../dto/update-user.dto';
 import { UserResponseDto } from '../dto/user-response.dto';
-import type { PaginateQuery } from 'nestjs-paginate';
-import { PaginateResponseDto } from '../../../shared/dto/paginate-response.dto';
+import { Paginate, Paginated, type PaginateQuery } from 'nestjs-paginate';
 import { UserService } from '../services/user.service';
 
 @ApiTags('users')
@@ -19,16 +18,11 @@ export class UserController {
     return this.userService.create(dto);
   }
 
-  @Get()
-  @ApiOperation({ summary: 'Get paginated list of users' })
-  @ApiResponse({
-    status: 200,
-    description: 'Paginated list of users',
-    type: PaginateResponseDto<UserResponseDto>,
-  })
-  async getList(@Query() query: PaginateQuery): Promise<PaginateResponseDto<UserResponseDto>> {
-    return this.userService.getList(query);
-  }
+@Get()
+async getList(@Query() query: PaginateQuery): Promise<ReturnType<typeof this.userService.getList>> {
+  return this.userService.getList(query);
+}
+
 
   @Get(':id')
   @ApiOperation({ summary: 'Get user by ID' })

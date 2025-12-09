@@ -1,12 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { FilterOperator, paginate, PaginateQuery } from 'nestjs-paginate';
+import { paginate, PaginateQuery } from 'nestjs-paginate';
 import { plainToInstance } from 'class-transformer';
-import { InsertErrorHandler } from '../../../database/handlers/insert.error.handler';
-import { PaginateResponseDto } from '../../../shared/dto/paginate-response.dto';
-import { UpdateErrorHandler } from '../../../database/handlers/update.error.handler';
-import { DeleteErrorHandler } from '../../../database/handlers/delete.error.handler';
 import { RecommendationEntity } from '../entity/recommendations.entity';
 import { CreateRecommendationDto } from '../dto/create-recommendations.dto';
 import { ResponseRecommendationsDto } from '../dto/response-recommendations.dto';
@@ -19,22 +15,33 @@ export class RecommendationsService {
     private readonly recommendationRepository: Repository<RecommendationEntity>,
   ) {}
 
-  async create(
-    createRecommendationsPayloadDto: CreateRecommendationDto,
-  ): Promise<ResponseRecommendationsDto> {
-    try {
-      const createdRecommendations = this.recommendationRepository.create(createRecommendationsPayloadDto);
-      await this.recommendationRepository.insert(createdRecommendations);
-      return plainToInstance(ResponseRecommendationsDto, createdRecommendations);
-    } catch (error) {
-      InsertErrorHandler.handle(error, 'recommendations');
-      throw error;
-    }
+  async create(createRecommendationDto: CreateRecommendationDto): Promise<ResponseRecommendationsDto> {
+    const createdRecommendation = this.recommendationRepository.create(createRecommendationDto);
+    await this.recommendationRepository.insert(createdRecommendation);
+    return plainToInstance(ResponseRecommendationsDto, createdRecommendation);
   }
 
-  async getList(
-    query: PaginateQuery,
-  ): Promise<PaginateResponseDto<ResponseRecommendationsDto>> {
+  async getList(query: PaginateQuery): Promise<{
+    data: ResponseRecommendationsDto[];
+    meta: {
+      itemsPerPage: number;
+      totalItems: number;
+      currentPage: number;
+      totalPages: number;
+      sortBy: [string, 'ASC' | 'DESC'][];
+      searchBy?: string[];
+      search?: string;
+      select: string[];
+      filter?: Record<string, any>;
+    };
+    links: {
+      first?: string;
+      previous?: string;
+      current?: string;
+      next?: string;
+      last?: string;
+    };
+  }> {
     const result = await paginate(query, this.recommendationRepository, {
       sortableColumns: ['id', 'movie_id', 'user_id', 'score'],
       searchableColumns: ['generated_at'],
@@ -42,19 +49,21 @@ export class RecommendationsService {
       relations: [],
     });
 
+    const meta = {
+      itemsPerPage: result.meta.itemsPerPage,
+      totalItems: result.meta.totalItems ?? 0,
+      currentPage: result.meta.currentPage ?? 1,
+      totalPages: result.meta.totalPages ?? 1,
+      sortBy: result.meta.sortBy,
+      searchBy: result.meta.searchBy,
+      search: result.meta.search,
+      select: [],
+      filter: result.meta.filter,
+    };
+
     return {
-      data: result.data.map((recommendation) => plainToInstance(ResponseRecommendationsDto, recommendation)),
-      meta: {
-        itemsPerPage: result.meta.itemsPerPage,
-        totalItems: result.meta.totalItems ?? 0, // <--- дефолт
-        currentPage: result.meta.currentPage ?? 1,
-        totalPages: result.meta.totalPages ?? 1,
-        sortBy: result.meta.sortBy,
-        search: result.meta.search,
-        filter: result.meta.filter,
-        searchBy: result.meta.searchBy,
-        select: []
-      },
+      data: result.data.map(rec => plainToInstance(ResponseRecommendationsDto, rec)),
+      meta,
       links: {
         first: result.links.first,
         previous: result.links.previous,
@@ -64,32 +73,20 @@ export class RecommendationsService {
       },
     };
   }
+
   async findOne(id: number): Promise<ResponseRecommendationsDto> {
-    return await this.recommendationRepository.findOneByOrFail({ id });
+    const recommendation = await this.recommendationRepository.findOneByOrFail({ id });
+    return plainToInstance(ResponseRecommendationsDto, recommendation);
   }
 
-  async update(
-    id: number,
-    update: UpdateRecommendationsDto,
-  ): Promise<ResponseRecommendationsDto> {
-    try {
-      await this.recommendationRepository.update(id, update);
-      const recommendation = await this.recommendationRepository.findOneByOrFail({ id });
-
-      return plainToInstance(ResponseRecommendationsDto, recommendation);
-    } catch (error) {
-      UpdateErrorHandler.handle(error, 'recommendations', id);
-      throw error;
-    }
+  async update(id: number, update: UpdateRecommendationsDto): Promise<ResponseRecommendationsDto> {
+    await this.recommendationRepository.update(id, update);
+    const updatedRecommendation = await this.recommendationRepository.findOneByOrFail({ id });
+    return plainToInstance(ResponseRecommendationsDto, updatedRecommendation);
   }
 
   async remove(id: number): Promise<void> {
-    try {
-      await this.recommendationRepository.findOneByOrFail({ id });
-      await this.recommendationRepository.delete(id);
-    } catch (error) {
-      DeleteErrorHandler.handle(error, 'recommendations', id);
-    }
+    await this.recommendationRepository.findOneByOrFail({ id });
+    await this.recommendationRepository.delete(id);
   }
-
 }

@@ -1,18 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { FilterOperator, paginate, PaginateQuery } from 'nestjs-paginate';
+import { paginate, PaginateQuery } from 'nestjs-paginate';
 import { plainToInstance } from 'class-transformer';
-import { InsertErrorHandler } from '../../../database/handlers/insert.error.handler';
-import { PaginateResponseDto } from '../../../shared/dto/paginate-response.dto';
-import { UpdateErrorHandler } from '../../../database/handlers/update.error.handler';
-import { DeleteErrorHandler } from '../../../database/handlers/delete.error.handler';
-import { UpdateMovieDto } from '../../movies/dto/update-movie.dto';
 import { ReviewEntity } from '../entity/reviews.entity';
 import { CreateReviewDto } from '../dto/create-review.dto';
 import { ResponseReviewDto } from '../dto/response-review.dto';
 import { UpdateReviewDto } from '../dto/update-review.dto';
-
 
 @Injectable()
 export class ReviewService {
@@ -21,22 +15,33 @@ export class ReviewService {
     private readonly reviewRepository: Repository<ReviewEntity>,
   ) {}
 
-  async create(
-    createReviewPayloadDto: CreateReviewDto,
-  ): Promise<ResponseReviewDto> {
-    try {
-      const createdReview = this.reviewRepository.create(createReviewPayloadDto);
-      await this.reviewRepository.insert(createdReview);
-      return plainToInstance(ResponseReviewDto, createdReview);
-    } catch (error) {
-      InsertErrorHandler.handle(error, 'reviews');
-      throw error;
-    }
+  async create(createReviewDto: CreateReviewDto): Promise<ResponseReviewDto> {
+    const createdReview = this.reviewRepository.create(createReviewDto);
+    await this.reviewRepository.insert(createdReview);
+    return plainToInstance(ResponseReviewDto, createdReview);
   }
 
-  async getList(
-    query: PaginateQuery,
-  ): Promise<PaginateResponseDto<ResponseReviewDto>> {
+  async getList(query: PaginateQuery): Promise<{
+    data: ResponseReviewDto[];
+    meta: {
+      itemsPerPage: number;
+      totalItems: number;
+      currentPage: number;
+      totalPages: number;
+      sortBy: [string, 'ASC' | 'DESC'][];
+      searchBy?: string[];
+      search?: string;
+      select: string[];
+      filter?: Record<string, any>;
+    };
+    links: {
+      first?: string;
+      previous?: string;
+      current?: string;
+      next?: string;
+      last?: string;
+    };
+  }> {
     const result = await paginate(query, this.reviewRepository, {
       sortableColumns: ['id', 'movie_id', 'user_id', 'comment'],
       searchableColumns: ['created_at'],
@@ -44,19 +49,21 @@ export class ReviewService {
       relations: [],
     });
 
+    const meta = {
+      itemsPerPage: result.meta.itemsPerPage,
+      totalItems: result.meta.totalItems ?? 0,
+      currentPage: result.meta.currentPage ?? 1,
+      totalPages: result.meta.totalPages ?? 1,
+      sortBy: result.meta.sortBy,
+      searchBy: result.meta.searchBy,
+      search: result.meta.search,
+      select: [],
+      filter: result.meta.filter,
+    };
+
     return {
-      data: result.data.map((review) => plainToInstance(ResponseReviewDto, review)),
-      meta: {
-        itemsPerPage: result.meta.itemsPerPage,
-        totalItems: result.meta.totalItems ?? 0, // <--- дефолт
-        currentPage: result.meta.currentPage ?? 1,
-        totalPages: result.meta.totalPages ?? 1,
-        sortBy: result.meta.sortBy,
-        search: result.meta.search,
-        filter: result.meta.filter,
-        searchBy: result.meta.searchBy,
-        select: []
-      },
+      data: result.data.map(review => plainToInstance(ResponseReviewDto, review)),
+      meta,
       links: {
         first: result.links.first,
         previous: result.links.previous,
@@ -66,32 +73,20 @@ export class ReviewService {
       },
     };
   }
+
   async findOne(id: number): Promise<ResponseReviewDto> {
-    return await this.reviewRepository.findOneByOrFail({ id });
+    const review = await this.reviewRepository.findOneByOrFail({ id });
+    return plainToInstance(ResponseReviewDto, review);
   }
 
-  async update(
-    id: number,
-    updateReviewDto: UpdateReviewDto,
-  ): Promise<ResponseReviewDto> {
-    try {
-      await this.reviewRepository.update(id, updateReviewDto);
-      const review = await this.reviewRepository.findOneByOrFail({ id });
-
-      return plainToInstance(ResponseReviewDto, review);
-    } catch (error) {
-      UpdateErrorHandler.handle(error, 'reviews', id);
-      throw error;
-    }
+  async update(id: number, updateReviewDto: UpdateReviewDto): Promise<ResponseReviewDto> {
+    await this.reviewRepository.update(id, updateReviewDto);
+    const updatedReview = await this.reviewRepository.findOneByOrFail({ id });
+    return plainToInstance(ResponseReviewDto, updatedReview);
   }
 
   async remove(id: number): Promise<void> {
-    try {
-      await this.reviewRepository.findOneByOrFail({ id });
-      await this.reviewRepository.delete(id);
-    } catch (error) {
-      DeleteErrorHandler.handle(error, 'reviews', id);
-    }
+    await this.reviewRepository.findOneByOrFail({ id });
+    await this.reviewRepository.delete(id);
   }
-
 }
