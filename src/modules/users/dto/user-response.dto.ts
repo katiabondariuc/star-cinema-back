@@ -6,6 +6,15 @@ import { MainRoleEnum } from 'src/shared/enums/main-role.enum';
 @Exclude()
 export class UserResponseDto {
   @ApiProperty({
+    description: 'user id',
+    example: '1',
+  }
+
+  )
+  @Expose()
+  id: number;
+  
+  @ApiProperty({
     description: 'Full name',
     example: 'John Doe',
   })

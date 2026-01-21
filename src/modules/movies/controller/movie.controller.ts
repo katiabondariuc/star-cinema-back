@@ -9,6 +9,7 @@ import {
   Param,
   Query,
   ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { CreateMovieDto } from '../dto/create-movie.dto';
@@ -16,12 +17,18 @@ import { UpdateMovieDto } from '../dto/update-movie.dto';
 import * as nestjsPaginate from 'nestjs-paginate';
 import { MovieService } from '../service/movie.service';
 import { MovieResponseDto } from '../dto/response-movie.dto';
+import { MainRoleEnum } from '../../../shared/enums/main-role.enum';
+import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
+import { Roles } from '../../auth/rolles.decorator';
+import { RolesGuard } from '../../auth/rolles.guard';
 
 @ApiTags('Movies')
 @Controller('movies')
 export class MovieController {
   constructor(private readonly movieService: MovieService) {}
 
+  @UseGuards(JwtAuthGuard, RolesGuard) 
+  @Roles(MainRoleEnum.ADMIN)
   @Post()
   @ApiOperation({ summary: 'Create a new movie' })
   @ApiResponse({ status: 201, description: 'Movie successfully created', type: MovieResponseDto })

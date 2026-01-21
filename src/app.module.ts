@@ -5,6 +5,7 @@ import { MovieModule } from './modules/movies/movies.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
 import { ReviewModule } from './modules/reviews/review.module';
 import { RecommendationsModule } from './modules/recommendations/recommendations.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { RecommendationsModule } from './modules/recommendations/recommendations
       autoLoadEntities: true,
       synchronize: true,
     }),
+    AuthModule,
     UserModule, 
     MovieModule,
     FavoritesModule,

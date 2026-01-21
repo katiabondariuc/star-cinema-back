@@ -8,6 +8,14 @@ async function bootstrap() {
     .setTitle('Star Cinema API')
     .setDescription('API documentation for Star Cinema project')
     .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+      'jwt',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

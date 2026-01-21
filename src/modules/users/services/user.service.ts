@@ -6,7 +6,7 @@ import { CreateUserDto } from "../dto/create-user.dto";
 import { UserResponseDto } from "../dto/user-response.dto";
 import { UpdateUserProfileDto } from "../dto/update-user.dto";
 import { plainToInstance } from "class-transformer";
-import { hash } from "argon2";
+import * as bcrypt from 'bcrypt';
 import {  PaginateQuery, paginate } from "nestjs-paginate";
 
 @Injectable()
@@ -16,13 +16,17 @@ export class UserService {
     private readonly userRepository: Repository<UserEntity>,
   ) {}
 
-  async create(dto: CreateUserDto, manager?: EntityManager): Promise<UserResponseDto> {
-    const hashedPassword = await hash(dto.password);
-    const repo = manager ? manager.getRepository(UserEntity) : this.userRepository;
-    const user = repo.create({ ...dto, password: hashedPassword });
-    await repo.save(user);
-    return plainToInstance(UserResponseDto, user);
+  findByEmail(email: string): Promise<UserEntity | null> {
+    return this.userRepository.findOne({ where: { email } });
   }
+
+  async create(dto: CreateUserDto, manager?: EntityManager): Promise<UserResponseDto> {
+  const hashedPassword = await bcrypt.hash(dto.password, 10); // 10 salt rounds
+  const repo = manager ? manager.getRepository(UserEntity) : this.userRepository;
+  const user = repo.create({ ...dto, password: hashedPassword });
+  await repo.save(user);
+  return plainToInstance(UserResponseDto, user);
+}
 
 async getList(query: PaginateQuery): Promise<{
   data: UserResponseDto[];
