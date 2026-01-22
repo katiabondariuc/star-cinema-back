@@ -15,12 +15,11 @@ import { UpdateFavoriteDto } from '../dto/update-favorites.dto';
 import type { PaginateQuery } from 'nestjs-paginate';
 import { FavoritesService } from '../service/favorites.service';
 
-@ApiTags('favorites')
+@ApiTags('favorites(for all users)')
 @Controller('favorites')
 export class FavoritesController {
   constructor(private readonly favoriteService: FavoritesService) {}
 
-  // ---------------- CREATE ----------------
   @Post()
   @ApiOperation({ summary: 'Add movie to favorites' })
   @ApiResponse({
@@ -32,14 +31,12 @@ export class FavoritesController {
     return this.favoriteService.create(dto);
   }
 
-  // ---------------- LIST ----------------
   @Get()
   @ApiOperation({ summary: 'Get list of favorites with pagination' })
   async getList(@Query() query: PaginateQuery) {
     return this.favoriteService.getList(query);
   }
 
-  // ---------------- FIND ONE ----------------
   @Get(':id')
   @ApiOperation({ summary: 'Get one favorite by ID' })
   @ApiResponse({
@@ -51,7 +48,6 @@ export class FavoritesController {
     return this.favoriteService.findOne(+id);
   }
 
-  // ---------------- UPDATE ----------------
   @Patch(':id')
   @ApiOperation({ summary: 'Update favorite record' })
   @ApiResponse({
@@ -66,7 +62,6 @@ export class FavoritesController {
     return this.favoriteService.update(+id, dto);
   }
 
-  // ---------------- DELETE ----------------
   @Delete(':id')
   @ApiOperation({ summary: 'Delete favorite record' })
   @ApiResponse({

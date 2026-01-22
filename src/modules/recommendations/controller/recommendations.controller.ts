@@ -16,7 +16,7 @@ import { ResponseRecommendationsDto } from '../dto/response-recommendations.dto'
 import type { PaginateQuery } from 'nestjs-paginate';
 import { RecommendationsService } from '../service/recommendations.service';
 
-@ApiTags('Recommendations')
+@ApiTags('Recommendations(for all users)')
 @Controller('recommendations')
 export class RecommendationsController {
   constructor(private readonly recommendationsService: RecommendationsService) {}

@@ -17,7 +17,7 @@ import { ResponseReviewDto } from '../dto/response-review.dto';
 import { UpdateReviewDto } from '../dto/update-review.dto';
 import { ReviewService } from '../service/review.service';
 
-@ApiTags('Reviews')
+@ApiTags('Reviews(for all users)')
 @Controller('reviews')
 export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}

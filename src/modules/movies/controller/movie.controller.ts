@@ -11,7 +11,7 @@ import {
   ParseIntPipe,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { CreateMovieDto } from '../dto/create-movie.dto';
 import { UpdateMovieDto } from '../dto/update-movie.dto';
 import * as nestjsPaginate from 'nestjs-paginate';
@@ -27,14 +27,16 @@ import { RolesGuard } from '../../auth/rolles.guard';
 export class MovieController {
   constructor(private readonly movieService: MovieService) {}
 
+  @ApiBearerAuth('jwt')
   @UseGuards(JwtAuthGuard, RolesGuard) 
   @Roles(MainRoleEnum.ADMIN)
   @Post()
-  @ApiOperation({ summary: 'Create a new movie' })
+  @ApiOperation({ summary: 'Create a new movie(Only admin can do it)' })
   @ApiResponse({ status: 201, description: 'Movie successfully created', type: MovieResponseDto })
   async create(@Body() createMovieDto: CreateMovieDto): Promise<MovieResponseDto> {
     return this.movieService.create(createMovieDto);
   }
+
 @Get()
 @ApiOperation({ summary: 'Get list of movies with pagination' })
 @ApiResponse({
@@ -54,8 +56,11 @@ async getList(@Query() query: nestjsPaginate.PaginateQuery) {
     return this.movieService.findOne(id);
   }
 
+   @ApiBearerAuth('jwt')
+  @UseGuards(JwtAuthGuard, RolesGuard) 
+  @Roles(MainRoleEnum.ADMIN)
   @Put(':id')
-  @ApiOperation({ summary: 'Update a movie by ID' })
+  @ApiOperation({ summary: 'Update a movie by ID(only admin can do it)' })
   @ApiParam({ name: 'id', description: 'Movie ID', type: Number })
   @ApiResponse({ status: 200, description: 'Updated movie', type: MovieResponseDto })
   async update(
@@ -65,8 +70,11 @@ async getList(@Query() query: nestjsPaginate.PaginateQuery) {
     return this.movieService.update(id, updateMovieDto);
   }
 
+  @ApiBearerAuth('jwt')
+  @UseGuards(JwtAuthGuard, RolesGuard) 
+  @Roles(MainRoleEnum.ADMIN)
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a movie by ID' })
+  @ApiOperation({ summary: 'Delete a movie by ID(only admin can do it)' })
   @ApiParam({ name: 'id', description: 'Movie ID', type: Number })
   @ApiResponse({ status: 204, description: 'Movie successfully deleted' })
   async remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
